@@ -75,7 +75,10 @@ def mult_ocr(from_number,
                 value = float(".".join(re.findall("\d+", text)))
                 break
             except ValueError:
-                print(f"I just skipped picture {number}, because I couldn't convert \"{value}\" into a number.")
+                if console == None:
+                    print(f"I just skipped picture {number}, because I couldn't convert \"{value}\" into a number.")
+                else:
+                    console.configure(text=f"I just skipped picture {number}, because I couldn't convert \"{value}\" into a number.")
                 value = None
                 break
         converted = [number, value] # Create list and put image in the first slot. Second slot 
@@ -93,5 +96,5 @@ def mult_ocr(from_number,
     if console == None:
         print(f"Converted {abs(from_number-to_number)} images.") # Prints how many images where converted
     else:
-        console.insert("0.0", f"Converted {abs(from_number-to_number)} images to sheet {sheetname} in {path}.")
+        console.configure(text=f"Converted {abs(from_number-to_number)} images to sheet \"{sheetname}\" in {path}.")
     return

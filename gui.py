@@ -4,7 +4,7 @@ import customtkinter as ctk
 import init as ocr
 
 root = ctk.CTk()
-root.geometry("600x300")
+root.geometry("1000x500")
 root.title("DoD Results OCR")
 
 def select_folder():
@@ -148,9 +148,11 @@ frame_convertbar.columnconfigure(1, weight=1)
 #----
 
 #---- Text output on the bottom of the page
-text_output = ctk.CTkTextbox(
+text_output = ctk.CTkLabel(
     master=root,
-    state="disabled"
+    anchor = "w",
+    padx=10,
+    text=""
 )
 #----
 
