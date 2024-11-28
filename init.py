@@ -50,7 +50,7 @@ def mult_ocr(from_number,
     imagepath -- path where the images are stored
     sheet_exists_toggle -- Sets which object should switch the overwrite mode of existing sheets. Standard: "new"
     """
-    
+    sheetname = sheetname[0:31] # Crop the sheetname to 31 letters, so that excel doesn't throw an error.
     list = [] 
     for number in range(from_number, to_number+1):
         
@@ -63,22 +63,33 @@ def mult_ocr(from_number,
             LINE_CLEAR = '\x1b[2K' # ASCII code to clear the current line
             print(LINE_UP, end=LINE_CLEAR) # Go a line up and clear after printing
         else:
+            if console != None:
+                console.configure(text=f"Started conversion of {num_of_images} images. This may take a while. The window and progressbar may freeze if window is unclicked.") 
             progressbar.set(progress)
             progressbar.update_idletasks()
         # --------
         
         # ---- Do some image processing
-        img = path_to_image(number, imagepath)[0:40, 10:125] # Get image and crop it to the desired size to reduce computing time
-        text = ocr_core(img) # Get the text via OCR
+        while True:
+            try:
+                img = path_to_image(number, imagepath)[0:40, 10:125] # Get image and crop it to the desired size to reduce computing time
+                text = ocr_core(img) # Get the text via OCR
+                break
+            except TypeError as error:
+                if console == None:
+                    print(f"An exception occured: {type(error).__name__} - {error}. I was on picture number {number}.")
+                else:
+                    console.configure(text=f"An exception occured: {type(error).__name__} - {error}. I was on picture number {number}.")
+                break
         while True:
             try:
                 value = float(".".join(re.findall("\d+", text)))
                 break
-            except ValueError:
+            except ValueError as error:
                 if console == None:
-                    print(f"I just skipped picture {number}, because I couldn't convert \"{value}\" into a number.")
+                    print(f"An exception occured: {type(error).__name__} - {error}. I probably couldn't convert \"{value}\" into a number. That' why I skipped picture {number}.")
                 else:
-                    console.configure(text=f"I just skipped picture {number}, because I couldn't convert \"{value}\" into a number.")
+                    console.configure(text=f"An exception occured: {type(error).__name__} - {error}. I probably couldn't convert \"{value}\" into a number. That' why I skipped picture {number}.")
                 value = None
                 break
         converted = [number, value] # Create list and put image in the first slot. Second slot 
@@ -89,10 +100,10 @@ def mult_ocr(from_number,
     df.columns=["filename", "volume / nL"] # Name the columns
     if exists(path):
         with pd.ExcelWriter(path, mode="a", if_sheet_exists=sheet_exists_toggle) as writer: # Uses the "append" function, so that a new sheet can be added to an existing excel file        
-            df.to_excel(writer, sheet_name=f"{sheetname}") # Defines, what the sheet should be named as
+            df.to_excel(writer, sheet_name=sheetname) # Defines, what the sheet should be named as
     else:
         with pd.ExcelWriter(path, mode="w") as writer: # Uses the "write" function, so that a file will be created
-            df.to_excel(writer, sheet_name=f"{sheetname}") 
+            df.to_excel(writer, sheet_name=sheetname) 
     if console == None:
         print(f"Converted {abs(from_number-to_number)} images.") # Prints how many images where converted
     else:
